@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
         B[i] = rand() / (float)RAND_MAX;
     }
 
+#ifdef DEBUG
     // seq
     INIT_TIME(t_prev, t_init);
     for (unsigned i = 0; i < N; i++) {
@@ -49,6 +50,7 @@ int main(int argc, char *argv[]) {
         }
     }
     GET_TIME(t_prev, t_init, t_final, t_seq);
+#endif
 
     // par
     INIT_TIME(t_prev, t_init);
@@ -64,6 +66,7 @@ int main(int argc, char *argv[]) {
     }
     GET_TIME(t_prev, t_init, t_final, t_par);
 
+#ifdef DEBUG
     // check errors
     for (unsigned i = 0; i < numElem; i++) {
         if (fabs(Cs[i] - Cp[i]) > 1e-3) {
@@ -71,18 +74,27 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
+#endif
 
     free(A);
     free(B);
     free(Cs);
     free(Cp);
 
+#ifdef DEBUG
     printf("Sequential time: %f\n", t_seq);
+#endif
     printf("Parallel time: %f\n", t_par);
 
+#ifdef DEBUG
     FILE *f = fopen((argc > 2) ? argv[2] : "output.txt", "a");
     fprintf(f, "%d,%d,%f,%f\n", N, omp_get_max_threads(), t_seq, t_par);
     fclose(f);
+#else
+    FILE *f = fopen((argc > 2) ? argv[2] : "output.txt", "a");
+    fprintf(f, "%d,%d,%f\n", N, omp_get_max_threads(), t_par);
+    fclose(f);
+#endif
 
     return 0;
 }
