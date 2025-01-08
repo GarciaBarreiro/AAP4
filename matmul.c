@@ -48,7 +48,6 @@ int main(int argc, char *argv[]) {
 
 #ifdef DEBUG
     // seq
-    // INIT_TIME(t_prev, t_init);
     for (unsigned i = 0; i < N; i++) {
         for (unsigned j = 0; j < N; j++) {
             float sum = 0;
@@ -58,7 +57,6 @@ int main(int argc, char *argv[]) {
             Cs[i * N + j] = sum;
         }
     }
-    // GET_TIME(t_prev, t_init, t_final, t_seq);
 #endif
 
     // par
@@ -81,24 +79,20 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
+
+    free(Cs);
 #endif
 
     free(A);
     free(B);
     free(Cp);
-
-#ifdef DEBUG
-    free(Cs);
-#endif
-
     GET_TIME(t_prev, t_init, t_final, t_par);
 
-#ifdef DEBUG
-    printf("Sequential time: %f\n", t_seq);
-#endif
     printf("Parallel time: %f\n", t_par);
 
 #ifdef DEBUG
+    printf("Sequential time: %f\n", t_seq);
+
     FILE *f = fopen((argc > 2) ? argv[2] : "output.txt", "a");
     fprintf(f, "%d,%d,%f,%f\n", N, omp_get_max_threads(), t_seq, t_par);
     fclose(f);
