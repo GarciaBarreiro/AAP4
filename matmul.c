@@ -22,15 +22,24 @@ int main(int argc, char *argv[]) {
     unsigned numElem = N * N;
     size_t size = N * N * sizeof(float);
 
+    INIT_TIME(t_prev, t_init);
     float *A  = (float *)malloc(size);
     float *B  = (float *)malloc(size);
-    float *Cs = (float *)malloc(size);  // result sequential
     float *Cp = (float *)malloc(size);  // result parallel
 
-    if (!A || !B || !Cs || !Cp) {
+    if (!A || !B || !Cp) {
         fprintf(stderr, "malloc failed\n");
         return 1;
     }
+
+#ifdef DEBUG
+    float *Cs = (float *)malloc(size);  // result sequential
+
+    if (!Cs) {
+        fprintf(stderr, "malloc failed\n");
+        return 1;
+    }
+#endif
 
     for (unsigned i = 0; i < numElem; i++) {
         A[i] = rand() / (float)RAND_MAX;
@@ -39,7 +48,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef DEBUG
     // seq
-    INIT_TIME(t_prev, t_init);
+    // INIT_TIME(t_prev, t_init);
     for (unsigned i = 0; i < N; i++) {
         for (unsigned j = 0; j < N; j++) {
             float sum = 0;
@@ -49,11 +58,10 @@ int main(int argc, char *argv[]) {
             Cs[i * N + j] = sum;
         }
     }
-    GET_TIME(t_prev, t_init, t_final, t_seq);
+    // GET_TIME(t_prev, t_init, t_final, t_seq);
 #endif
 
     // par
-    INIT_TIME(t_prev, t_init);
     #pragma omp parallel for collapse(2)
     for (unsigned i = 0; i < N; i++) {
         for (unsigned j = 0; j < N; j++) {
@@ -64,7 +72,6 @@ int main(int argc, char *argv[]) {
             Cp[i * N + j] = sum;
         }
     }
-    GET_TIME(t_prev, t_init, t_final, t_par);
 
 #ifdef DEBUG
     // check errors
@@ -78,8 +85,13 @@ int main(int argc, char *argv[]) {
 
     free(A);
     free(B);
-    free(Cs);
     free(Cp);
+
+#ifdef DEBUG
+    free(Cs);
+#endif
+
+    GET_TIME(t_prev, t_init, t_final, t_par);
 
 #ifdef DEBUG
     printf("Sequential time: %f\n", t_seq);
